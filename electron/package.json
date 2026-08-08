@@ -1,0 +1,20 @@
+{
+  "name": "job-application-tracker-electron",
+  "version": "1.0.0",
+  "description": "Desktop application for Job Application Tracker",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^43.3.0",
+    "electron-builder": "^26.15.3",
+    "tsx": "^4.23.11",
+    "typescript": "^7.0.2"
+  }
+}
