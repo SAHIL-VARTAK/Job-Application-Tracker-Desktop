@@ -1,10 +1,11 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, Menu } from "electron";
 import path from "node:path";
 import fs from "node:fs";
 import { spawn, ChildProcess, spawnSync } from "node:child_process";
 import http from "node:http";
 
 let backendProcess: ChildProcess | null = null;
+let splashWindow: BrowserWindow | null = null;
 
 function getResourcePath(...segments: string[]): string {
     if (app.isPackaged) {
@@ -12,6 +13,65 @@ function getResourcePath(...segments: string[]): string {
     }
 
     return path.resolve(app.getAppPath(), "..", ...segments);
+}
+
+function createSplashWindow(): void {
+    splashWindow = new BrowserWindow({
+        width: 500,
+        height: 400,
+        resizable: false,
+        frame: true,
+        center: true,
+        show: true,
+        title: "Job Application Tracker",
+        webPreferences: {
+            contextIsolation: true,
+            nodeIntegration: false,
+        },
+    });
+
+    const splashPath = app.isPackaged
+        ? path.join(
+            process.resourcesPath,
+            "splash",
+            "loading.html"
+        )
+        : path.join(
+            app.getAppPath(),
+            "splash",
+            "loading.html"
+        );
+
+    splashWindow.loadFile(splashPath);
+}
+
+function showStartupError(error: unknown): void {
+    if (!splashWindow) {
+        return;
+    }
+
+    const message =
+        error instanceof Error
+            ? error.message
+            : "Unknown startup error.";
+
+    const errorPath = app.isPackaged
+        ? path.join(
+            process.resourcesPath,
+            "splash",
+            "error.html"
+        )
+        : path.join(
+            app.getAppPath(),
+            "splash",
+            "error.html"
+        );
+
+    splashWindow.loadFile(errorPath, {
+        query: {
+            message,
+        },
+    });
 }
 
 function findBackendJar(): string {
@@ -82,7 +142,8 @@ function startBackend(): void {
         ],
         {
             cwd: backendDir,
-            stdio: "inherit",
+            windowsHide: true,
+            stdio: "ignore",
         }
     );
 
@@ -160,9 +221,20 @@ function createWindow(): void {
     console.log("Loading frontend:", frontendPath);
 
     window.loadFile(frontendPath);
+
+    window.once("ready-to-show", () => {
+        window.show();
+
+        if (splashWindow) {
+            splashWindow.close();
+            splashWindow = null;
+        }
+    });
 }
 
 async function startApplication(): Promise<void> {
+    createSplashWindow();
+
     startBackend();
 
     console.log("Waiting for Spring Boot...");
@@ -195,6 +267,8 @@ function stopBackend(): void {
 }
 
 app.whenReady().then(async () => {
+    Menu.setApplicationMenu(null);
+
     try {
         await startApplication();
 
@@ -203,12 +277,12 @@ app.whenReady().then(async () => {
                 createWindow();
             }
         });
-    } catch (error) {
+    } catch (error) {        
         console.error("Failed to start application:", error);
 
-        stopBackend();
+        showStartupError(error);
 
-        app.quit();
+        stopBackend();
     }
 });
 
