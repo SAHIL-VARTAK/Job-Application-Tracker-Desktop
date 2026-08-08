@@ -1,19 +1,29 @@
 import { app, BrowserWindow } from "electron";
 import path from "node:path";
 import fs from "node:fs";
-import { spawn, ChildProcess } from "node:child_process";
+import { spawn, ChildProcess, spawnSync } from "node:child_process";
 import http from "node:http";
 
 let backendProcess: ChildProcess | null = null;
 
+function getResourcePath(...segments: string[]): string {
+    if (app.isPackaged) {
+        return path.join(process.resourcesPath, ...segments);
+    }
+
+    return path.resolve(app.getAppPath(), "..", ...segments);
+}
+
 function findBackendJar(): string {
-    const backendTargetDir = path.resolve(
-        app.getAppPath(),
-        "../workspace/Job-Application-Tracker/target"
-    );
+    const backendDir = app.isPackaged
+        ? path.join(process.resourcesPath, "backend")
+        : path.resolve(
+              app.getAppPath(),
+              "../workspace/Job-Application-Tracker/target"
+          );
 
     const jar = fs
-        .readdirSync(backendTargetDir)
+        .readdirSync(backendDir)
         .find(
             (file) =>
                 file.endsWith(".jar") &&
@@ -22,26 +32,54 @@ function findBackendJar(): string {
         );
 
     if (!jar) {
-        throw new Error(`No backend JAR found in: ${backendTargetDir}`);
+        throw new Error(`No backend JAR found in: ${backendDir}`);
     }
 
-    return path.join(backendTargetDir, jar);
+    return path.join(backendDir, jar);
 }
 
 function startBackend(): void {
     const jarPath = findBackendJar();
     const backendDir = path.dirname(jarPath);
-    const dataDir = path.join(backendDir, "data");
+
+    const dataDir = path.join(
+        app.getPath("userData"),
+        "data"
+    );
 
     fs.mkdirSync(dataDir, { recursive: true });
 
+    const databasePath = path.join(
+        dataDir,
+        "job_tracker.db"
+    );
+
+    const javaPath = app.isPackaged
+        ? path.join(
+              process.resourcesPath,
+              "runtime",
+              "bin",
+              "java.exe"
+          )
+        : path.resolve(
+              app.getAppPath(),
+              "runtime",
+              "bin",
+              "java.exe"
+          );
+
     console.log("Starting backend:", jarPath);
-    console.log("Backend working directory:", backendDir);
-    console.log("Database directory:", dataDir);
+    console.log("Java runtime:", javaPath);
+    console.log("Application data:", dataDir);
+    console.log("Database:", databasePath);
 
     backendProcess = spawn(
-        "java",
-        ["-jar", jarPath],
+        javaPath,
+        [
+            "-jar",
+            jarPath,
+            `--spring.datasource.url=jdbc:sqlite:${databasePath}`,
+        ],
         {
             cwd: backendDir,
             stdio: "inherit",
@@ -107,10 +145,17 @@ function createWindow(): void {
         },
     });
 
-    const frontendPath = path.resolve(
-        app.getAppPath(),
-        "../workspace/Job-Application-Tracker-UI/dist/index.html"
-    );
+    const frontendPath = app.isPackaged
+        ? path.join(
+            process.resourcesPath,
+            "frontend",
+            "dist",
+            "index.html"
+        )
+        : path.resolve(
+            app.getAppPath(),
+            "../workspace/Job-Application-Tracker-UI/dist/index.html"
+        );
 
     console.log("Loading frontend:", frontendPath);
 
@@ -132,13 +177,20 @@ async function startApplication(): Promise<void> {
 }
 
 function stopBackend(): void {
-    if (!backendProcess) {
+    if (!backendProcess?.pid) {
         return;
     }
 
-    console.log("Stopping Spring Boot...");
+    const pid = backendProcess.pid;
 
-    backendProcess.kill();
+    console.log(`Stopping Spring Boot (PID ${pid})...`);
+
+    if (process.platform === "win32") {
+        spawnSync("taskkill", ["/pid", pid.toString(), "/T", "/F"]);
+    } else {
+        backendProcess.kill("SIGTERM");
+    }
+
     backendProcess = null;
 }
 
@@ -161,13 +213,11 @@ app.whenReady().then(async () => {
 });
 
 app.on("window-all-closed", () => {
-    stopBackend();
-
     if (process.platform !== "darwin") {
         app.quit();
     }
 });
 
-app.on("before-quit", () => {
+app.on("will-quit", () => {
     stopBackend();
 });
