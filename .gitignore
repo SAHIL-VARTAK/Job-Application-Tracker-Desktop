@@ -1,0 +1,5 @@
+workspace/
+*.log
+target/
+dist/
+src-tauri/target/
