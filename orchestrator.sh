@@ -66,6 +66,8 @@ show_help() {
     echo -e "  ${GREEN}clone${NC}    Clone the backend and frontend repositories"
     echo -e "  ${GREEN}update${NC}   Pull the latest changes from both repositories"
     echo -e "  ${GREEN}build${NC}    Build the backend JAR and frontend production bundle"
+    echo -e "  ${GREEN}electron-start${NC}    Start the Electron application"
+    echo -e "  ${GREEN}electron-package${NC}  Create the Windows installer using Electron Builder"
     echo -e "  ${GREEN}help${NC}     Show this help message"
     echo
 }
@@ -261,6 +263,24 @@ build() {
 }
 
 # ============================================================
+# Electron
+# ============================================================
+
+electron_start() {
+    print_header "Starting Job Application Tracker Electron"
+
+    bash "$ELECTRON_DIR/orchestrator.sh" start
+}
+
+electron_package() {
+    print_header "Creating Job Application Tracker Windows Installer using Electron Builder"
+
+    bash "$ELECTRON_DIR/orchestrator.sh" package
+
+    print_header "Electron packaging completed successfully"
+}
+
+# ============================================================
 # Main
 # ============================================================
 
@@ -273,6 +293,12 @@ case "${1:-help}" in
         ;;
     build)
         build
+        ;;
+    electron-start)
+        electron_start
+        ;;
+    electron-package)
+        electron_package
         ;;
     help)
         show_help
