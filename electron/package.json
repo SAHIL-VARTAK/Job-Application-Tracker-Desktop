@@ -1,0 +1,78 @@
+{
+  "name": "job-application-tracker-electron",
+  "version": "1.0.0",
+  "description": "Desktop application for Job Application Tracker",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && electron .",
+    "package": "npm run build && electron-builder"
+  },
+  "keywords": [
+    "job application tracker",
+    "career management",
+    "electron",
+    "desktop application"
+  ],
+  "author": {
+    "name": "Sahil Vartak",
+    "url": "https://github.com/SAHIL-VARTAK"
+  },
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^43.3.0",
+    "electron-builder": "^26.15.3",
+    "tsx": "^4.23.11",
+    "typescript": "^7.0.2"
+  },
+  "build": {
+    "appId": "com.sahilvartak.jobapplicationtracker.electron",
+    "productName": "Job Application Tracker - Electron",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../workspace/Job-Application-Tracker-UI/dist",
+        "to": "frontend/dist"
+      },
+      {
+        "from": "../workspace/Job-Application-Tracker/target/job-application-tracker-1.0.0.jar",
+        "to": "backend/job-application-tracker-1.0.0.jar"
+      },
+      {
+        "from": "runtime",
+        "to": "runtime"
+      },
+      {
+          "from": "splash",
+          "to": "splash"
+      },
+      {
+          "from": "build/icon.ico",
+          "to": "build/icon.ico"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Job Application Tracker - Electron",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "artifactName": "Job-Application-Tracker-Electron-Setup-${version}.${ext}",
+      "uninstallDisplayName": "Job Application Tracker - Electron"
+    }
+  }
+}

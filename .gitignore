@@ -3,3 +3,6 @@ workspace/
 target/
 dist/
 src-tauri/target/
+node_modules/
+runtime/
+release/
