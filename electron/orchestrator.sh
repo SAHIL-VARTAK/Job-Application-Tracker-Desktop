@@ -60,6 +60,7 @@ show_help() {
     echo -e "${BLUE}Commands:${NC}"
     echo -e "  ${GREEN}start${NC}    Build and start the Electron application"
     echo -e "  ${GREEN}package${NC}  Build and create the Windows installer"
+    echo -e "  ${GREEN}clean${NC}     Remove Electron build artifacts"
     echo -e "  ${GREEN}help${NC}     Show this help message"
     echo
 }
@@ -148,6 +149,28 @@ check_electron_directory() {
 }
 
 # ============================================================
+# Install Electron Dependencies
+# ============================================================
+
+install_dependencies() {
+    if [[ -d "$ELECTRON_DIR/node_modules" ]] &&
+       [[ -f "$ELECTRON_DIR/node_modules/.bin/tsc" ]]; then
+        print_info "Electron dependencies already installed."
+        return
+    fi
+
+    print_header "Installing Electron Dependencies"
+
+    (
+        cd "$ELECTRON_DIR"
+
+        npm ci
+    )
+
+    print_success "Electron dependencies installed successfully."
+}
+
+# ============================================================
 # Create Custom Java Runtime
 # ============================================================
 
@@ -207,6 +230,8 @@ start() {
     check_prerequisites
     check_electron_directory
 
+    install_dependencies
+
     create_runtime
     build_electron
 
@@ -226,6 +251,8 @@ start() {
 package() {
     check_prerequisites
     check_electron_directory
+
+    install_dependencies
 
     create_runtime
     build_electron
@@ -248,6 +275,30 @@ package() {
 }
 
 # ============================================================
+# Clean Electron Build Artifacts
+# ============================================================
+
+clean() {
+    check_electron_directory
+
+    print_header "Cleaning Electron Build Artifacts"
+
+    print_info "Removing node_modules..."
+    rm -rf "$ELECTRON_DIR/node_modules"
+
+    print_info "Removing dist..."
+    rm -rf "$ELECTRON_DIR/dist"
+
+    print_info "Removing release..."
+    rm -rf "$ELECTRON_DIR/release"
+
+    print_info "Removing custom Java runtime..."
+    rm -rf "$ELECTRON_DIR/runtime"
+
+    print_success "Electron build artifacts cleaned successfully."
+}
+
+# ============================================================
 # Main
 # ============================================================
 
@@ -257,6 +308,9 @@ case "${1:-help}" in
         ;;
     package)
         package
+        ;;
+    clean)
+        clean
         ;;
     help)
         show_help

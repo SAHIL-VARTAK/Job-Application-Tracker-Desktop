@@ -8,8 +8,16 @@
     "start": "npm run build && electron .",
     "package": "npm run build && electron-builder"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "job application tracker",
+    "career management",
+    "electron",
+    "desktop application"
+  ],
+  "author": {
+    "name": "Sahil Vartak",
+    "url": "https://github.com/SAHIL-VARTAK"
+  },
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
@@ -60,7 +68,11 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Job Application Tracker - Electron",
       "runAfterFinish": true,
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": false,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "artifactName": "Job-Application-Tracker-Electron-Setup-${version}.${ext}",
+      "uninstallDisplayName": "Job Application Tracker - Electron"
     }
   }
 }
