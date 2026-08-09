@@ -1,4 +1,4 @@
-# Job Application Tracker — Electron
+# Job Application Tracker - Electron
 
 Windows desktop implementation of the Job Application Tracker using Electron.
 
