@@ -1,0 +1,8 @@
+workspace/
+*.log
+target/
+dist/
+src-tauri/target/
+node_modules/
+runtime/
+release/
