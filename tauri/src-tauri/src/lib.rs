@@ -14,6 +14,7 @@ use std::{
 
 use tauri::{
     http::{Request, Response},
+    image::Image,
     Manager,
     RunEvent,
     WebviewUrl,
@@ -27,6 +28,32 @@ struct BackendState {
 
 struct SplashState {
     programmatic_close: AtomicBool,
+}
+
+fn get_app_icon(app: &tauri::AppHandle) -> Result<Image<'static>, String> {
+    let icon_path = if cfg!(debug_assertions) {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("resources")
+            .join("splash")
+            .join("icon.ico")
+    } else {
+        app.path()
+            .resource_dir()
+            .map_err(|e| format!("Failed to get resource directory: {e}"))?
+            .join("splash")
+            .join("icon.ico")
+    };
+
+    if !icon_path.exists() {
+        return Err(format!(
+            "Application icon not found: {}",
+            icon_path.display()
+        ));
+    }
+
+    Image::from_path(&icon_path)
+        .map_err(|e| format!("Failed to load application icon: {e}"))
+        .map(|image| image.to_owned())
 }
 
 fn get_resource_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
@@ -232,6 +259,8 @@ fn stop_backend(state: &BackendState) {
 }
 
 fn create_main_window(app: &tauri::AppHandle) -> Result<(), String> {
+    let icon_path = get_app_icon(app)?;
+
     WebviewWindowBuilder::new(
         app,
         "main",
@@ -241,6 +270,8 @@ fn create_main_window(app: &tauri::AppHandle) -> Result<(), String> {
     .inner_size(1280.0, 800.0)
     .resizable(true)
     .fullscreen(false)
+    .icon(icon_path)
+    .map_err(|e| format!("Failed to set main window icon: {e}"))?
     .build()
     .map_err(|e| format!("Failed to create main window: {e}"))?;
 
@@ -318,6 +349,8 @@ fn serve_splash_file(
 }
 
 fn create_splash_window(app: &tauri::AppHandle) -> Result<(), String> {
+    let icon_path = get_app_icon(app)?;
+
     let splash_window = WebviewWindowBuilder::new(
         app,
         "splash",
@@ -331,6 +364,8 @@ fn create_splash_window(app: &tauri::AppHandle) -> Result<(), String> {
     .inner_size(500.0, 400.0)
     .resizable(false)
     .center()
+    .icon(icon_path)
+    .map_err(|e| format!("Failed to set splash window icon: {e}"))?
     .build()
     .map_err(|e| format!("Failed to create splash window: {e}"))?;
 
@@ -360,6 +395,7 @@ fn show_startup_error(
     app: &tauri::AppHandle,
     error: &str,
 ) -> Result<(), String> {
+    let icon_path = get_app_icon(app)?;
     println!("Creating error splash...");
 
     let encoded_message = urlencoding::encode(error);
@@ -384,6 +420,8 @@ fn show_startup_error(
     .inner_size(500.0, 400.0)
     .resizable(false)
     .center()
+    .icon(icon_path)
+    .map_err(|e| format!("Failed to set splash window icon: {e}"))?
     .build()
     .map_err(|e| {
         format!("Failed to create error splash: {e}")
