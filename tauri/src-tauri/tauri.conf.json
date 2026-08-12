@@ -6,8 +6,7 @@
   "build": {
     "frontendDist": "../../workspace/Job-Application-Tracker-UI/dist",
     "devUrl": "http://localhost:5173",
-    "beforeDevCommand": "cd ../workspace/Job-Application-Tracker-UI && npm run dev",
-    "beforeBuildCommand": "cd ../workspace/Job-Application-Tracker-UI && npm run build"
+    "beforeDevCommand": "cd ../workspace/Job-Application-Tracker-UI && npm run dev"
   },
   "app": {
     "security": {

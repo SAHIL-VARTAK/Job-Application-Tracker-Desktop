@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     fs,
     io::{Read, Write},
     net::{TcpStream, ToSocketAddrs},
@@ -12,8 +13,13 @@ use std::{
     time::{Duration, Instant},
 };
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
+use reqwest::blocking::Client;
+
 use tauri::{
-    http::{Request, Response},
+    http::{Request, Response, StatusCode},
     image::Image,
     Manager,
     RunEvent,
@@ -30,19 +36,21 @@ struct SplashState {
     programmatic_close: AtomicBool,
 }
 
-fn get_app_icon(app: &tauri::AppHandle) -> Result<Image<'static>, String> {
-    let icon_path = if cfg!(debug_assertions) {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("resources")
-            .join("splash")
-            .join("icon.ico")
+fn get_resource_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    if cfg!(debug_assertions) {
+        Ok(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources"))
     } else {
         app.path()
             .resource_dir()
-            .map_err(|e| format!("Failed to get resource directory: {e}"))?
-            .join("splash")
-            .join("icon.ico")
-    };
+            .map(|path| path.join("resources"))
+            .map_err(|e| format!("Failed to get resource directory: {e}"))
+    }
+}
+
+fn get_app_icon(app: &tauri::AppHandle) -> Result<Image<'static>, String> {
+    let icon_path = get_resource_dir(app)?
+        .join("splash")
+        .join("icon.ico");
 
     if !icon_path.exists() {
         return Err(format!(
@@ -54,16 +62,6 @@ fn get_app_icon(app: &tauri::AppHandle) -> Result<Image<'static>, String> {
     Image::from_path(&icon_path)
         .map_err(|e| format!("Failed to load application icon: {e}"))
         .map(|image| image.to_owned())
-}
-
-fn get_resource_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    if cfg!(debug_assertions) {
-        Ok(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources"))
-    } else {
-        app.path()
-            .resource_dir()
-            .map_err(|e| format!("Failed to get resource directory: {e}"))
-    }
 }
 
 fn find_backend_jar(app: &tauri::AppHandle) -> Result<PathBuf, String> {
@@ -102,10 +100,16 @@ fn start_backend(app: &tauri::AppHandle) -> Result<Child, String> {
     let jar_path = find_backend_jar(app)?;
     let resource_dir = get_resource_dir(app)?;
 
+    let java_executable = if cfg!(debug_assertions) {
+        "java.exe"
+    } else {
+        "javaw.exe"
+    };
+
     let java_path = resource_dir
         .join("runtime")
         .join("bin")
-        .join("java.exe");
+        .join(java_executable);
 
     if !java_path.exists() {
         return Err(format!(
@@ -141,6 +145,7 @@ fn start_backend(app: &tauri::AppHandle) -> Result<Child, String> {
             "--spring.datasource.url=jdbc:sqlite:{}",
             database_path.display()
         ))
+        .arg("--app.frontend.url=http://tauri.localhost")
         .current_dir(backend_dir)
         .spawn()
         .map_err(|e| format!("Failed to start Spring Boot backend: {e}"))
@@ -221,6 +226,7 @@ fn stop_backend(state: &BackendState) {
                     "/T",
                     "/F",
                 ])
+                .creation_flags(0x08000000) // CREATE_NO_WINDOW
                 .output();
 
             match result {
@@ -258,14 +264,147 @@ fn stop_backend(state: &BackendState) {
     }
 }
 
+fn proxy_api_request(
+    request: &Request<Vec<u8>>,
+    response: &mut Response<Cow<'static, [u8]>>,
+    client: &Client,
+) {
+    let path = request.uri().path();
+
+    // Only proxy /api/* requests.
+    if !path.starts_with("/api/") {
+        return;
+    }
+
+    let query = request
+        .uri()
+        .query()
+        .map(|q| format!("?{q}"))
+        .unwrap_or_default();
+
+    let backend_url = format!(
+        "http://127.0.0.1:8080{}{}",
+        path, query
+    );
+
+    println!(
+        "Tauri API proxy: {} {}",
+        request.method(),
+        backend_url
+    );
+
+    let method = match reqwest::Method::from_bytes(
+        request.method().as_str().as_bytes(),
+    ) {
+        Ok(method) => method,
+        Err(error) => {
+            eprintln!("Invalid HTTP method: {error}");
+
+            *response.status_mut() = StatusCode::INTERNAL_SERVER_ERROR;
+            *response.body_mut() =
+                Cow::Owned(b"Invalid HTTP method".to_vec());
+
+            return;
+        }
+    };
+
+    let mut builder = client
+        .request(method, &backend_url)
+        .body(request.body().clone());
+
+    // Forward useful request headers.
+    for (name, value) in request.headers() {
+        let name_lower = name.as_str().to_ascii_lowercase();
+
+        // Let reqwest manage these itself.
+        if matches!(
+            name_lower.as_str(),
+            "host"
+                | "content-length"
+                | "connection"
+                | "accept-encoding"
+                | "origin"
+                | "referer"
+        ) {
+            continue;
+        }
+
+        builder = builder.header(name.as_str(), value.as_bytes());
+    }
+
+    let backend_response = match builder.send() {
+        Ok(response) => response,
+        Err(error) => {
+            eprintln!("API proxy request failed: {error}");
+
+            *response.status_mut() = StatusCode::BAD_GATEWAY;
+            *response.body_mut() = Cow::Owned(
+                format!("Backend request failed: {error}").into_bytes(),
+            );
+
+            return;
+        }
+    };
+
+    let status = StatusCode::from_u16(
+        backend_response.status().as_u16()
+    )
+    .unwrap_or(StatusCode::BAD_GATEWAY);
+
+    let headers = backend_response.headers().clone();
+
+    let body = match backend_response.bytes() {
+        Ok(body) => body.to_vec(),
+        Err(error) => {
+            eprintln!("Failed to read backend response: {error}");
+
+            *response.status_mut() = StatusCode::BAD_GATEWAY;
+            *response.body_mut() = Cow::Owned(
+                format!("Failed to read backend response: {error}")
+                    .into_bytes(),
+            );
+
+            return;
+        }
+    };
+
+    *response.status_mut() = status;
+
+    // Forward response headers.
+    for (name, value) in &headers {
+        // These are managed by Tauri/WebView and should not be copied.
+        if matches!(
+            name.as_str(),
+            "content-length"
+                | "transfer-encoding"
+                | "connection"
+        ) {
+            continue;
+        }
+
+        response.headers_mut().insert(name.clone(), value.clone());
+    }
+
+    *response.body_mut() = Cow::Owned(body);
+}
+
 fn create_main_window(app: &tauri::AppHandle) -> Result<(), String> {
     let icon_path = get_app_icon(app)?;
+
+    let api_client = Client::builder()
+        .no_proxy()
+        .timeout(Duration::from_secs(10))
+        .build()
+        .map_err(|e| format!("Failed to create API client: {e}"))?;
 
     WebviewWindowBuilder::new(
         app,
         "main",
         WebviewUrl::App("index.html".into()),
     )
+    .on_web_resource_request(move |request, response| {
+        proxy_api_request(&request, response, &api_client);
+    })
     .title("Job Application Tracker")
     .inner_size(1280.0, 800.0)
     .resizable(true)
@@ -473,17 +612,13 @@ pub fn run() {
             programmatic_close: AtomicBool::new(false),
         })
         .register_uri_scheme_protocol("splash", |context, request| {
-            let resource_dir = if cfg!(debug_assertions) {
-                PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources")
-            } else {
-                match context.app_handle().path().resource_dir() {
-                    Ok(path) => path,
-                    Err(_) => {
-                        return Response::builder()
-                            .status(500)
-                            .body(b"Failed to resolve resource directory".to_vec())
-                            .unwrap();
-                    }
+            let resource_dir = match get_resource_dir(context.app_handle()) {
+                Ok(path) => path,
+                Err(error) => {
+                    return Response::builder()
+                        .status(500)
+                        .body(error.into_bytes())
+                        .unwrap();
                 }
             };
 
