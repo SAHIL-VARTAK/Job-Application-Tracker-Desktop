@@ -18,6 +18,7 @@ BACKEND_DIR="$WORKSPACE_DIR/$BACKEND_NAME"
 FRONTEND_DIR="$WORKSPACE_DIR/$FRONTEND_NAME"
 
 ELECTRON_DIR="electron"
+TAURI_DIR="tauri"
 
 # ============================================================
 # Colors
@@ -72,6 +73,9 @@ show_help() {
     echo -e "  ${GREEN}electron-start${NC}    Start the Electron application"
     echo -e "  ${GREEN}electron-package${NC}  Create the Windows installer using Electron Builder"
     echo -e "  ${GREEN}electron-clean${NC}  Remove Electron build artifacts"
+    echo -e "  ${GREEN}tauri-start${NC}    Start the Tauri application"
+    echo -e "  ${GREEN}tauri-package${NC}  Create the Windows installer using Tauri"
+    echo -e "  ${GREEN}tauri-clean${NC}  Remove Tauri build artifacts"
     echo -e "  ${GREEN}help${NC}     Show this help message"
     echo
 }
@@ -293,6 +297,32 @@ electron_clean() {
 }
 
 # ============================================================
+# Tauri
+# ============================================================
+
+tauri_start() {
+    print_header "Starting Job Application Tracker Tauri"
+
+    bash "$TAURI_DIR/orchestrator.sh" start
+}
+
+tauri_package() {
+    print_header "Creating Job Application Tracker Windows Installer using Tauri"
+
+    bash "$TAURI_DIR/orchestrator.sh" package
+
+    print_header "Tauri packaging completed successfully"
+}
+
+tauri_clean() {
+    print_header "Cleaning Tauri build artifacts"
+
+    bash "$TAURI_DIR/orchestrator.sh" clean
+
+    print_header "Tauri clean completed successfully"
+}
+
+# ============================================================
 # Clean Workspace
 # ============================================================
 
@@ -336,6 +366,15 @@ case "${1:-help}" in
         ;;
     electron-clean)
         electron_clean
+        ;;
+    tauri-start)
+        tauri_start
+        ;;
+    tauri-package)
+        tauri_package
+        ;;
+    tauri-clean)
+        tauri_clean
         ;;
     help)
         show_help

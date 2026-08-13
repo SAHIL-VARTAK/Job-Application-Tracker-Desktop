@@ -138,6 +138,14 @@ fn start_backend(app: &tauri::AppHandle) -> Result<Child, String> {
     println!("Application data: {}", data_dir.display());
     println!("Database: {}", database_path.display());
 
+    let frontend_url = if cfg!(debug_assertions) {
+        "http://localhost:5173"
+    } else {
+        "http://tauri.localhost"
+    };
+
+    println!("Spring Boot frontend URL: {frontend_url}");
+
     Command::new(&java_path)
         .arg("-jar")
         .arg(&jar_path)
@@ -145,7 +153,7 @@ fn start_backend(app: &tauri::AppHandle) -> Result<Child, String> {
             "--spring.datasource.url=jdbc:sqlite:{}",
             database_path.display()
         ))
-        .arg("--app.frontend.url=http://tauri.localhost")
+        .arg(format!("--app.frontend.url={frontend_url}"))
         .current_dir(backend_dir)
         .spawn()
         .map_err(|e| format!("Failed to start Spring Boot backend: {e}"))
