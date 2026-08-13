@@ -131,6 +131,12 @@ The Electron implementation packages the existing React frontend and Spring Boot
 
 For the complete Electron-specific architecture, setup, runtime creation, startup process, packaging, and troubleshooting details, see the [Electron README](electron/README.md).
 
+# Tauri Desktop Application
+
+The Tauri implementation packages the existing React frontend and Spring Boot backend into a standalone Windows desktop application. It includes the Tauri desktop shell, production React frontend, Spring Boot backend JAR, custom Java 22 runtime created with `jlink`, per-user SQLite database, startup splash and error screens, hidden backend console window, and Windows NSIS installer.
+
+For the complete Tauri-specific architecture, setup, runtime creation, startup process, packaging, and troubleshooting details, see the [Tauri README](tauri/README.md).
+
 # Complete Setup Using the Root Orchestrator
 
 For a fresh checkout:
@@ -212,17 +218,24 @@ Application data is intentionally preserved when the application is uninstalled.
 
 # Current Result
 
-The Electron Windows application is successfully packaged with approximate sizes:
+The Windows applications are successfully packaged with approximate sizes:
 
+Electron:
 ```text
 Windows installer:       ~200 MB
 Installed application:   ~450 MB
+Installer name:          Job-Application-Tracker-Electron-Setup-<version>.exe
 ```
 
-The installer is compressed, while the installed application contains the extracted application files.
-
-For distribution, provide the Windows installer:
-
+Tauri:
 ```text
-Job-Application-Tracker-Electron-Setup-<version>.exe
+Windows installer:       ~100 MB
+Installed application:   ~130 MB
+Installer name:          Job Application Tracker - Tauri_<version>_x64-setup.exe
 ```
+
+Notes:
+- Electron packaging is straightforward and requires minimal setup, making it easier to get started quickly.
+- Tauri produces significantly smaller installers and installed sizes, but the setup process is more involved. It often requires additional configuration and custom Rust integrations to achieve the desired functionality.
+- The installers are compressed, while the installed applications contain the extracted application files.
+- For distribution, provide the respective Windows installer.

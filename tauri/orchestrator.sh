@@ -12,6 +12,9 @@ TAURI_SRC_DIR="$TAURI_DIR/src-tauri"
 
 FRONTEND_DIR="$ROOT_DIR/workspace/Job-Application-Tracker-UI"
 
+BACKEND_SOURCE_DIR="$ROOT_DIR/workspace/Job-Application-Tracker/target"
+BACKEND_DIR="$TAURI_SRC_DIR/resources/backend"
+
 RUNTIME_DIR="$TAURI_SRC_DIR/resources/runtime"
 
 JAVA_PATH="/c/Program Files/Java/jdk-22"
@@ -180,6 +183,44 @@ check_frontend_build() {
 }
 
 # ============================================================
+# Copy Backend JAR
+# ============================================================
+
+copy_backend_jar() {
+    print_header "Checking Spring Boot Backend"
+
+    local existing_jar
+    existing_jar=$(find "$BACKEND_DIR" -maxdepth 1 -type f -name "*.jar" | head -n 1)
+
+    if [[ -n "$existing_jar" ]]; then
+        print_info "Spring Boot JAR already exists."
+        print_info "Backend:"
+        echo "$existing_jar"
+        return
+    fi
+
+    local jar_file
+    jar_file=$(find "$BACKEND_SOURCE_DIR" -maxdepth 1 -type f -name "*.jar" | head -n 1)
+
+    if [[ -z "$jar_file" ]]; then
+        print_error "Spring Boot JAR was not found."
+        echo
+        echo "Expected either:"
+        echo "$BACKEND_DIR/*.jar"
+        echo "$BACKEND_SOURCE_DIR/*.jar"
+        exit 1
+    fi
+
+    mkdir -p "$BACKEND_DIR"
+
+    cp "$jar_file" "$BACKEND_DIR/"
+
+    print_success "Spring Boot backend copied successfully."
+    print_info "Backend:"
+    echo "$BACKEND_DIR/$(basename "$jar_file")"
+}
+
+# ============================================================
 # Create Custom Java Runtime
 # ============================================================
 
@@ -231,6 +272,7 @@ start() {
     check_prerequisites
     check_tauri_directory
 
+    copy_backend_jar
     create_runtime
 
     print_header "Starting Job Application Tracker Tauri"
@@ -250,6 +292,7 @@ package() {
     check_tauri_directory
     check_frontend_build
 
+    copy_backend_jar
     create_runtime
 
     print_header "Creating Job Application Tracker Windows Installer"
@@ -290,9 +333,11 @@ clean() {
     print_info "Removing custom Java runtime..."
     rm -rf "$RUNTIME_DIR"
 
+    print_info "Removing copied Spring Boot backend..."
+    rm -rf "$BACKEND_DIR"
+
     print_success "Tauri build artifacts cleaned successfully."
 }
-
 # ============================================================
 # Main
 # ============================================================
