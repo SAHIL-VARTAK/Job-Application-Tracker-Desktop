@@ -22,6 +22,11 @@
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(SingleFile)' == 'true'">
+    <WindowsPackageType>None</WindowsPackageType>
+    <PublishSingleFile>true</PublishSingleFile>
+  </PropertyGroup>
+  
   <ItemGroup>
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Square150x150Logo.png" />

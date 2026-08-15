@@ -155,3 +155,61 @@ dotnet run --project WPF\WPF.csproj
 ```powershell
 dotnet publish WPF\WPF.csproj -c Release -r win-x64 --self-contained true -o publish\WPF
 ```
+
+### Run the WinUI 3 Application
+
+```powershell
+dotnet run --project WinUI3\WinUI3.csproj
+```
+
+### WinUI 3 Production Publish
+
+```powershell
+dotnet publish WinUI3\WinUI3.csproj -c Release -r win-x64 --self-contained true -o publish\WinUI3
+dotnet publish WinUI3\WinUI3.csproj -c Release -r win-x64 --self-contained true -p:SingleFile=true -o publish\WinUI3-SingleFileE
+```
+
+### WinUI 3 MSIX Publish
+
+```powershell
+dotnet build WinUI3\WinUI3.csproj -c Release -p:Platform=x64 -p:GenerateAppxPackageOnBuild=true
+```
+
+This generates the MSIX under:
+
+```text
+WinUI3\AppPackages\
+```
+
+### WPF Installer
+
+```powershell
+iscc installer\WPF\WPF.iss
+```
+
+The installer will be generated under:
+
+```text
+publish\installers\
+```
+
+
+### WinUI 3 Installer
+
+**Normal publish:**
+
+```powershell
+iscc /DBuildType=Normal installer\WinUI3\WinUI3.iss
+```
+
+**Single-file publish:**
+
+```powershell
+iscc /DBuildType=SingleFile installer\WinUI3\WinUI3.iss
+```
+
+Both commands use the same `WinUI3.iss` installer script and generate the corresponding installer under:
+
+```text
+publish\installers\
+```
