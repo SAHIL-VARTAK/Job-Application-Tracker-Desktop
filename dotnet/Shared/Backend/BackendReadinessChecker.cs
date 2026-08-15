@@ -2,7 +2,7 @@ using System.Net.Http;
 
 namespace Shared.Backend;
 
-public sealed class BackendReadinessChecker
+public sealed class BackendReadinessChecker : IDisposable
 {
     private readonly HttpClient _httpClient;
 
@@ -40,7 +40,8 @@ public sealed class BackendReadinessChecker
             {
                 // Backend is not ready yet.
             }
-            catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+            catch (TaskCanceledException)
+                when (!cancellationToken.IsCancellationRequested)
             {
                 // Individual request timed out. Keep checking.
             }
@@ -51,5 +52,10 @@ public sealed class BackendReadinessChecker
         }
 
         return false;
+    }
+
+    public void Dispose()
+    {
+        _httpClient.Dispose();
     }
 }

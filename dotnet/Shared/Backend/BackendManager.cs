@@ -7,12 +7,14 @@ public sealed class BackendManager : IDisposable
 {
     private readonly AppPaths _paths;
     private Process? _process;
+    private readonly BackendReadinessChecker _readinessChecker;
 
     public bool IsRunning => _process is { HasExited: false };
 
     public BackendManager(AppPaths paths)
     {
         _paths = paths;
+        _readinessChecker = new BackendReadinessChecker();
     }
 
     public void Start(string frontendUrl, bool production = false)
@@ -96,8 +98,19 @@ public sealed class BackendManager : IDisposable
         }
     }
 
+    public async Task<bool> WaitForBackendAsync(
+        TimeSpan timeout,
+        CancellationToken cancellationToken = default)
+    {
+        return await _readinessChecker.WaitForBackendAsync(
+            "http://127.0.0.1:8080/api/applications",
+            timeout,
+            cancellationToken);
+    }
+
     public void Dispose()
     {
         Stop();
+        _readinessChecker.Dispose();
     }
 }

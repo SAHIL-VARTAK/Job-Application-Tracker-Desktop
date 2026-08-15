@@ -8,7 +8,7 @@ public partial class App : System.Windows.Application
 {
     private BackendManager? _backendManager;
 
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
         try
         {
@@ -16,15 +16,23 @@ public partial class App : System.Windows.Application
 
             var paths = new AppPaths();
 
-            _backendManager =
-                new BackendManager(paths);
+            _backendManager = new BackendManager(paths);
 
             _backendManager.Start(
                 "file://",
                 production: false);
 
-            var mainWindow =
-                new MainWindow(paths);
+            var backendReady =
+                await _backendManager.WaitForBackendAsync(
+                    TimeSpan.FromSeconds(30));
+
+            if (!backendReady)
+            {
+                throw new InvalidOperationException(
+                    "Spring Boot backend did not become ready within 30 seconds.");
+            }
+
+            var mainWindow = new MainWindow(paths);
 
             MainWindow = mainWindow;
             mainWindow.Show();
