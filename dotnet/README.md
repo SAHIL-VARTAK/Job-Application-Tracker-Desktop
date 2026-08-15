@@ -94,3 +94,52 @@ dotnet sln JobApplicationTracker.slnx add WinUI3\WinUI3.csproj
 ```powershell
 dotnet build WinUI3\WinUI3.csproj
 ```
+
+## Add Shared Project References
+
+```powershell
+dotnet add WPF\WPF.csproj reference Shared\Shared.csproj
+dotnet add WinUI3\WinUI3.csproj reference Shared\Shared.csproj
+```
+
+### Verify Project References
+
+```powershell
+dotnet list WPF\WPF.csproj reference
+dotnet list WinUI3\WinUI3.csproj reference
+```
+
+### Build the Solution
+
+```powershell
+dotnet build JobApplicationTracker.slnx
+```
+
+## Add WebView2
+
+WebView2 is added to the WPF and WinUI 3 projects. It is not added to the shared project.
+
+### WPF
+
+```powershell
+dotnet add WPF\WPF.csproj package Microsoft.Web.WebView2
+```
+
+### WinUI 3
+
+```powershell
+dotnet add WinUI3\WinUI3.csproj package Microsoft.Web.WebView2
+```
+
+### Build the Solution
+
+```powershell
+dotnet build JobApplicationTracker.slnx
+```
+
+### Verify WebView2 Packages
+
+```powershell
+dotnet list WPF\WPF.csproj package
+dotnet list WinUI3\WinUI3.csproj package
+```

@@ -1,23 +1,40 @@
-﻿using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows;
 
 namespace WPF;
 
-/// <summary>
-/// Interaction logic for MainWindow.xaml
-/// </summary>
 public partial class MainWindow : Window
 {
-    public MainWindow()
+    private readonly string _frontendUrl;
+
+    public MainWindow(string frontendUrl)
     {
         InitializeComponent();
+
+        _frontendUrl = frontendUrl;
+
+        Loaded += MainWindow_Loaded;
+    }
+
+    private async void MainWindow_Loaded(
+        object sender,
+        RoutedEventArgs e)
+    {
+        try
+        {
+            await WebView.EnsureCoreWebView2Async();
+
+            WebView.CoreWebView2.Navigate(
+                _frontendUrl + "/");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                ex.ToString(),
+                "WebView2 Startup Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+
+            Close();
+        }
     }
 }
