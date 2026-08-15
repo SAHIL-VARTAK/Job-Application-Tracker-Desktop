@@ -16,6 +16,15 @@ public sealed class AppPaths
     public string FrontendDirectory =>
         Path.Combine(ResourcesDirectory, "frontend");
 
+    public string SplashDirectory =>
+        Path.Combine(ResourcesDirectory, "splash");
+
+    public string LoadingPagePath =>
+        Path.Combine(SplashDirectory, "loading.html");
+
+    public string ErrorPagePath =>
+        Path.Combine(SplashDirectory, "error.html");
+
     public string BackendJarPath =>
         Path.Combine(
             BackendDirectory,

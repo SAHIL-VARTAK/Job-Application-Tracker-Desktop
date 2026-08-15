@@ -15,4 +15,6 @@
 **/publish/
 
 # Resource files
-resources/
+resources/backend/
+resources/frontend/
+resources/runtime/

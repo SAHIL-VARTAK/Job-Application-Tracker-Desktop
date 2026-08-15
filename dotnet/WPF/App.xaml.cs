@@ -7,16 +7,29 @@ namespace WPF;
 public partial class App : System.Windows.Application
 {
     private BackendManager? _backendManager;
+    private MainWindow? _mainWindow;
 
-    protected override async void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(
+        StartupEventArgs e)
     {
+        base.OnStartup(e);
+
         try
         {
-            base.OnStartup(e);
-
             var paths = new AppPaths();
 
-            _backendManager = new BackendManager(paths);
+            _mainWindow = new MainWindow(paths);
+
+            MainWindow = _mainWindow;
+
+            _mainWindow.Show();
+
+            await _mainWindow.InitializeWebViewAsync();
+
+            _mainWindow.ShowLoading();
+
+            _backendManager =
+                new BackendManager(paths);
 
             _backendManager.Start(
                 "file://",
@@ -28,28 +41,22 @@ public partial class App : System.Windows.Application
 
             if (!backendReady)
             {
-                throw new InvalidOperationException(
+                _mainWindow.ShowError(
                     "Spring Boot backend did not become ready within 30 seconds.");
+
+                return;
             }
 
-            var mainWindow = new MainWindow(paths);
-
-            MainWindow = mainWindow;
-            mainWindow.Show();
+            _mainWindow.ShowApplication();
         }
         catch (Exception ex)
         {
-            MessageBox.Show(
-                ex.ToString(),
-                "Startup Error",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
-
-            Shutdown(1);
+            _mainWindow?.ShowError(ex.Message);
         }
     }
 
-    protected override void OnExit(ExitEventArgs e)
+    protected override void OnExit(
+        ExitEventArgs e)
     {
         _backendManager?.Stop();
 

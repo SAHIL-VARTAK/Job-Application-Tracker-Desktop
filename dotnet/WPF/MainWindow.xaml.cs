@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Windows;
+using Microsoft.Web.WebView2.Core;
 using Shared.Application;
 
 namespace WPF;
@@ -11,56 +12,73 @@ public partial class MainWindow : Window
     public MainWindow(AppPaths paths)
     {
         InitializeComponent();
-
         _paths = paths;
-
-        Loaded += MainWindow_Loaded;
     }
 
-    private async void MainWindow_Loaded(
-        object sender,
-        RoutedEventArgs e)
+    public async Task InitializeWebViewAsync()
     {
-        try
+        var options = new CoreWebView2EnvironmentOptions
         {
-            var indexPath = Path.Combine(
+            AdditionalBrowserArguments =
+                "--allow-file-access-from-files"
+        };
+
+        var environment =
+            await CoreWebView2Environment.CreateAsync(
+                null,
+                null,
+                options);
+
+        await WebView.EnsureCoreWebView2Async(environment);
+    }
+
+    public void ShowLoading()
+    {
+        NavigateToFile(_paths.LoadingPagePath);
+    }
+
+    public void ShowApplication()
+    {
+        NavigateToFile(
+            Path.Combine(
                 _paths.FrontendDistPath,
-                "index.html");
+                "index.html"));
+    }
 
-            if (!File.Exists(indexPath))
-            {
-                throw new FileNotFoundException(
-                    "Frontend was not found.",
-                    indexPath);
-            }
-
-            var options =
-                new Microsoft.Web.WebView2.Core.CoreWebView2EnvironmentOptions();
-
-            options.AdditionalBrowserArguments =
-                "--allow-file-access-from-files";
-
-            var environment =
-                await Microsoft.Web.WebView2.Core.CoreWebView2Environment
-                    .CreateAsync(
-                        null,
-                        null,
-                        options);
-
-            await WebView.EnsureCoreWebView2Async(environment);
-
-            WebView.CoreWebView2.Navigate(
-                new Uri(indexPath).AbsoluteUri);
-        }
-        catch (Exception ex)
+    public void ShowError(string message)
+    {
+        if (!File.Exists(_paths.ErrorPagePath))
         {
             MessageBox.Show(
-                ex.ToString(),
-                "WebView2 Startup Error",
+                message,
+                "Startup Error",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
 
-            Close();
+            return;
         }
+
+        var errorUrl =
+            $"{new Uri(_paths.ErrorPagePath).AbsoluteUri}" +
+            $"?message={Uri.EscapeDataString(message)}";
+
+        WebView.CoreWebView2.Navigate(errorUrl);
+    }
+
+    private void NavigateToFile(string path)
+    {
+        if (!File.Exists(path))
+        {
+            MessageBox.Show(
+                $"Page was not found:\n{path}",
+                "Startup Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+
+            return;
+        }
+
+        WebView.CoreWebView2.Navigate(
+            new Uri(path).AbsoluteUri);
     }
 }
