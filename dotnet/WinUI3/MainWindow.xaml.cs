@@ -15,7 +15,17 @@ public sealed partial class MainWindow : Window
 
         _paths = paths;
 
-        AppWindow.SetIcon("Assets/AppIcon.ico");
+        AppWindow.Title = "Job Application Tracker";
+
+        var iconPath = Path.Combine(
+            _paths.ResourcesDirectory,
+            "icons",
+            "icon.ico");
+
+        if (File.Exists(iconPath))
+        {
+            AppWindow.SetIcon(iconPath);
+        }
     }
 
     public async Task InitializeWebViewAsync()
@@ -32,8 +42,7 @@ public sealed partial class MainWindow : Window
                 null,
                 options);
 
-        await WebView.EnsureCoreWebView2Async(
-            environment);
+        await WebView.EnsureCoreWebView2Async(environment);
     }
 
     public void ShowLoading()
