@@ -12,6 +12,7 @@
     <Content Include="..\resources\**\*">
       <Link>resources\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
 
@@ -22,6 +23,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>..\resources\icons\icon.ico</ApplicationIcon>
+
+    <AssemblyName>JobApplicationTracker-Dotnet</AssemblyName>
+    <Product>Job Application Tracker</Product>
+
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
   </PropertyGroup>
 
 </Project>

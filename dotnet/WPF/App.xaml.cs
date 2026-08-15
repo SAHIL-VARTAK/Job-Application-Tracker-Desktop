@@ -31,9 +31,15 @@ public partial class App : System.Windows.Application
             _backendManager =
                 new BackendManager(paths);
 
+            #if DEBUG
+                const bool production = false;
+            #else
+                const bool production = true;
+            #endif
+
             _backendManager.Start(
                 "file://",
-                production: false);
+                production);
 
             var backendReady =
                 await _backendManager.WaitForBackendAsync(

@@ -61,7 +61,7 @@ public sealed class AppPaths
         DatabaseDirectory = Path.Combine(
             Environment.GetFolderPath(
                 Environment.SpecialFolder.ApplicationData),
-            "JobApplicationTracker",
+            "JobApplicationTracker-Dotnet",
             "data");
     }
 
