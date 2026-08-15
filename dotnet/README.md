@@ -143,3 +143,15 @@ dotnet build JobApplicationTracker.slnx
 dotnet list WPF\WPF.csproj package
 dotnet list WinUI3\WinUI3.csproj package
 ```
+
+### Run the WPF Application
+
+```powershell
+dotnet run --project WPF\WPF.csproj
+```
+
+### WPF Production Publish
+
+```powershell
+dotnet publish WPF\WPF.csproj -c Release -r win-x64 --self-contained true -o publish\WPF
+```

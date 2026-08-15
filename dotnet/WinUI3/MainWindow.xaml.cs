@@ -1,27 +1,71 @@
+using System.IO;
 using Microsoft.UI.Xaml;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
+using Microsoft.Web.WebView2.Core;
+using Shared.Application;
 
 namespace WinUI3;
 
-/// <summary>
-/// The application window. This hosts a Frame that displays pages. Add your
-/// UI and logic to MainPage.xaml / MainPage.xaml.cs instead of here so you
-/// can use Page features such as navigation events and the Loaded lifecycle.
-/// </summary>
 public sealed partial class MainWindow : Window
 {
-    public MainWindow()
+    private readonly AppPaths _paths;
+
+    public MainWindow(AppPaths paths)
     {
         InitializeComponent();
 
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
+        _paths = paths;
 
         AppWindow.SetIcon("Assets/AppIcon.ico");
+    }
 
-        // Navigate the root frame to the main page on startup.
-        RootFrame.Navigate(typeof(MainPage));
+    public async Task InitializeWebViewAsync()
+    {
+        var options = new CoreWebView2EnvironmentOptions
+        {
+            AdditionalBrowserArguments =
+                "--allow-file-access-from-files"
+        };
+
+        var environment =
+            await CoreWebView2Environment.CreateWithOptionsAsync(
+                null,
+                null,
+                options);
+
+        await WebView.EnsureCoreWebView2Async(
+            environment);
+    }
+
+    public void ShowLoading()
+    {
+        NavigateToFile(_paths.LoadingPagePath);
+    }
+
+    public void ShowApplication()
+    {
+        NavigateToFile(
+            Path.Combine(
+                _paths.FrontendDistPath,
+                "index.html"));
+    }
+
+    public void ShowError(string message)
+    {
+        var errorUrl =
+            $"{new Uri(_paths.ErrorPagePath).AbsoluteUri}" +
+            $"?message={Uri.EscapeDataString(message)}";
+
+        NavigateToFile(errorUrl);
+    }
+
+    private void NavigateToFile(string path)
+    {
+        if (!File.Exists(path))
+        {
+            return;
+        }
+
+        WebView.CoreWebView2.Navigate(
+            new Uri(path).AbsoluteUri);
     }
 }
