@@ -3,6 +3,10 @@ name: Build Desktop Applications
 on:
   workflow_dispatch:
 
+  push:
+    branches:
+      - task/github-actions-workflow
+
 permissions:
   contents: read
 
