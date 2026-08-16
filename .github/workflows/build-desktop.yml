@@ -178,63 +178,45 @@ jobs:
       #   shell: bash
       #   run: bash ./orchestrator.sh dotnet-installer-winui3
 
-      # - name: Publish WinUI 3 single-file
-      #   id: winui3_single_publish
-      #   if: always()
-      #   continue-on-error: true
-      #   shell: bash
-      #   run: bash ./orchestrator.sh dotnet-publish-single
+      - name: Publish WinUI 3 single-file
+        id: winui3_single_publish
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: bash ./orchestrator.sh dotnet-publish-single
 
-      # - name: Create WinUI 3 single-file installer
-      #   if: always() && steps.winui3_single_publish.outcome == 'success'
-      #   continue-on-error: true
-      #   shell: bash
-      #   run: bash ./orchestrator.sh dotnet-installer-single
+      - name: Create WinUI 3 single-file installer
+        if: always() && steps.winui3_single_publish.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: bash ./orchestrator.sh dotnet-installer-single
 
-      # - name: Upload .NET installers
-      #   if: always()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: dotnet-installers
-      #     path: dotnet/publish/installers/*.exe
-      #     if-no-files-found: warn
-      #     retention-days: 7
+      - name: Upload .NET installers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-installers
+          path: dotnet/publish/installers/*.exe
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Build unsigned MSIX
         id: msix_build
         if: always()
         continue-on-error: true
-        shell: bash
+        shell: powershell
+        working-directory: dotnet
         run: |
-          PROJECT="dotnet/WinUI3/WinUI3.csproj"
-          OUTPUT="dotnet/publish/WinUI3-MSIX"
-
-          rm -rf "$OUTPUT"
-          mkdir -p "$OUTPUT"
-
-          echo "Building unsigned MSIX..."
-
-          dotnet build "$PROJECT" \
-            -c Release \
-            -p:Platform=x64 \
-            -p:GenerateAppxPackageOnBuild=true \
-            -p:AppxPackageDir="$OUTPUT/"
-
-          MSIX=$(find "$OUTPUT" -type f -name "*.msix" | head -n 1)
-
-          if [ -z "$MSIX" ]; then
-            echo "Error: MSIX package was not generated."
-            exit 1
-          fi
-
-          echo "MSIX generated:"
-          echo "$MSIX"
+          dotnet build WinUI3\WinUI3.csproj `
+            -c Release `
+            -p:Platform=x64 `
+            -p:GenerateAppxPackageOnBuild=true
 
       - name: Upload unsigned MSIX
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: dotnet-msix
-          path: dotnet/publish/WinUI3-MSIX/**/*.msix
+          path: dotnet/WinUI3/AppPackages/**/*.msix
           if-no-files-found: warn
           retention-days: 7
