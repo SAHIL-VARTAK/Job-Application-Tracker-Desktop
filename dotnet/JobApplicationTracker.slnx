@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Shared/Shared.csproj" />
+  <Project Path="WinUI3/WinUI3.csproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="WPF/WPF.csproj" />
+</Solution>

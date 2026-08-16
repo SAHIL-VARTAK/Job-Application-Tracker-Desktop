@@ -1,0 +1,25 @@
+# Build output
+**/bin/
+**/obj/
+
+# Visual Studio
+.vs/
+
+# User-specific files
+*.user
+*.suo
+
+# WinUI generated/package output
+**/AppPackages/
+**/BundleArtifacts/
+**/publish/
+
+# MSIX signing certificates
+*.pfx
+*.cer
+.env
+
+# Resource files
+resources/backend/
+resources/frontend/
+resources/runtime/
