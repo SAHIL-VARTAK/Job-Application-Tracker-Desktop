@@ -92,7 +92,7 @@ echo "Signing MSIX..."
 
 MSYS_NO_PATHCONV=1 "$SIGNTOOL" sign \
     /fd SHA256 \
-    /tr https://timestamp.digicert.com \
+    /tr http://timestamp.digicert.com \
     /td SHA256 \
     /f "$CERTIFICATE_WIN" \
     /p "$MSIX_CERT_PASSWORD" \
