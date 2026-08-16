@@ -4,6 +4,60 @@ A desktop application built around the existing Job Application Tracker backend 
 
 The repository provides orchestration scripts for cloning, updating, building, cleaning, running, and packaging the application with Electron.
 
+## Desktop Application Builds
+
+The Job Application Tracker is packaged as a standalone Windows desktop application using multiple desktop technologies.
+
+### Desktop Builds
+
+| Application | Description | Download |
+|---|---|---|
+| **Electron** | Electron desktop shell with React frontend and Spring Boot backend | [Windows Installer](https://github.com/SAHIL-VARTAK/Job-Application-Tracker-Desktop/releases/download/desktop-showcase/Job-Application-Tracker-Electron-Setup-1.0.0.exe) |
+| **Tauri** | Rust-based desktop shell with the same React frontend and Spring Boot backend | [Windows Installer](https://github.com/SAHIL-VARTAK/Job-Application-Tracker-Desktop/releases/download/desktop-showcase/Job.Application.Tracker.-.Tauri_1.0.0_x64-setup.exe) |
+| **WPF** | Windows desktop application using .NET and WebView2 | [Windows Installer](https://github.com/SAHIL-VARTAK/Job-Application-Tracker-Desktop/releases/download/desktop-showcase/JobApplicationTracker-WPF-Setup.exe) |
+| **WinUI 3** | Modern Windows desktop application using .NET and WebView2 | [Windows Installer](https://github.com/SAHIL-VARTAK/Job-Application-Tracker-Desktop/releases/download/desktop-showcase/JobApplicationTracker-WinUI3-Setup.exe) |
+| **WinUI 3 Single-File** | Self-contained single-file WinUI 3 deployment | [Windows Installer](https://github.com/SAHIL-VARTAK/Job-Application-Tracker-Desktop/releases/download/desktop-showcase/JobApplicationTracker-WinUI3-SingleFile-Setup.exe) |
+| **WinUI 3 MSIX** | MSIX package signed with a development certificate | [MSIX Package](https://github.com/SAHIL-VARTAK/Job-Application-Tracker-Desktop/releases/download/desktop-showcase/WinUI3_1.0.0.0_x64.msix) |
+
+**[View all desktop builds and release assets](https://github.com/SAHIL-VARTAK/Job-Application-Tracker-Desktop/releases/tag/desktop-showcase)**
+
+> **MSIX:** The MSIX package is signed with a development certificate and may require certificate trust configuration on other Windows machines.
+
+### Installation Walkthrough
+
+1. Download the installer from the **Desktop Builds** table above.
+2. Run the downloaded `.exe` installer. Windows SmartScreen may display a warning because the application uses a development certificate.
+3. Select **More info → Run anyway** to continue.
+4. Follow the setup wizard and complete the installation.
+
+   <img src="images/setup.png" alt="Installation Setup" width="600">
+
+5. Launch **Job Application Tracker** from the desktop shortcut or Start Menu.
+
+   <img src="images/application-running.png" alt="Job Application Tracker Running" width="600">
+
+6. The application starts with the bundled React frontend, Spring Boot backend, and required runtime components.
+7. To uninstall the application, open the application's installation folder and run the **Uninstall** executable.
+
+### Installing the MSIX Package
+
+The MSIX package is signed with a development certificate. On a machine where this certificate is not already trusted, install the certificate before installing the MSIX package.
+
+1. Download the [Job Application Tracker development certificate](dotnet/scripts/JobApplicationTracker-Dev.cer).
+2. Open `JobApplicationTracker-Dev.cer` and select **Install Certificate...**.
+
+   <img src="images/certificate.png" alt="Job Application Tracker Development Certificate" width="500">
+
+3. Select **Local Machine** and click **Next**. Windows may request administrator permission.
+4. Select **Place all certificates in the following store** and click **Browse...**.
+5. Select **Trusted People**, click **OK**, then click **Next**.
+
+   <img src="images/certificate-location.png" alt="Job Application Tracker Development Certificate Location" width="500">
+
+6. Click **Finish** to complete the certificate installation.
+7. Download and open the **WinUI 3 MSIX Package** from the [Desktop Builds](#desktop-builds) table above.
+8. The MSIX package can now be installed normally.
+
 ## Project Structure
 
 ```text
@@ -311,4 +365,13 @@ Notes:
 - Tauri produces significantly smaller installers and installed sizes, but the setup process is more involved. It requires additional configuration and custom Rust integrations to achieve the desired functionality.
 - .NET provides a moderate setup experience. Adding the desktop wrapper is relatively straightforward, while creating distributable installers requires additional software such as Inno Setup.
 - The installers are compressed, while the installed applications contain the extracted application files.
-- For distribution, provide the respective Windows installer.
+
+### GitHub Actions
+
+The desktop applications are built independently using GitHub Actions, allowing Electron, Tauri, and .NET builds to run in parallel.
+
+**Build Times**
+- Electron: approximately **4 minutes**
+- .NET: all four installers completed within approximately **8 minutes total**
+- Tauri: approximately **20 minutes**
+- [View the GitHub Actions build](https://github.com/SAHIL-VARTAK/Job-Application-Tracker-Desktop/actions/runs/31953337151/job/95180089982)

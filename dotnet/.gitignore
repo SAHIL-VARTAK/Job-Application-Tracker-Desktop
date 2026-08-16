@@ -16,7 +16,6 @@
 
 # MSIX signing certificates
 *.pfx
-*.cer
 .env
 
 # Resource files
