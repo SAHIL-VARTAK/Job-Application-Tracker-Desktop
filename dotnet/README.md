@@ -166,7 +166,7 @@ dotnet run --project WinUI3\WinUI3.csproj
 
 ```powershell
 dotnet publish WinUI3\WinUI3.csproj -c Release -r win-x64 --self-contained true -o publish\WinUI3
-dotnet publish WinUI3\WinUI3.csproj -c Release -r win-x64 --self-contained true -p:SingleFile=true -o publish\WinUI3-SingleFileE
+dotnet publish WinUI3\WinUI3.csproj -c Release -r win-x64 --self-contained true -p:SingleFile=true -o publish\WinUI3-SingleFile
 ```
 
 ### WinUI 3 MSIX Publish

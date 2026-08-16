@@ -19,6 +19,7 @@ FRONTEND_DIR="$WORKSPACE_DIR/$FRONTEND_NAME"
 
 ELECTRON_DIR="electron"
 TAURI_DIR="tauri"
+DOTNET_DIR="dotnet"
 
 # ============================================================
 # Colors
@@ -76,6 +77,19 @@ show_help() {
     echo -e "  ${GREEN}tauri-start${NC}    Start the Tauri application"
     echo -e "  ${GREEN}tauri-package${NC}  Create the Windows installer using Tauri"
     echo -e "  ${GREEN}tauri-clean${NC}  Remove Tauri build artifacts"
+    echo -e "  ${GREEN}dotnet-prepare${NC}          Prepare frontend, backend and Java runtime"
+    echo -e "  ${GREEN}dotnet-start-wpf${NC}       Start the WPF application"
+    echo -e "  ${GREEN}dotnet-start-winui3${NC}    Start the WinUI 3 application"
+    echo -e "  ${GREEN}dotnet-build-wpf${NC}       Build the WPF application"
+    echo -e "  ${GREEN}dotnet-build-winui3${NC}    Build the WinUI 3 application"
+    echo -e "  ${GREEN}dotnet-publish-wpf${NC}     Publish the WPF application"
+    echo -e "  ${GREEN}dotnet-publish-winui3${NC}  Publish the WinUI 3 application"
+    echo -e "  ${GREEN}dotnet-publish-single${NC}  Publish WinUI 3 single-file"
+    echo -e "  ${GREEN}dotnet-installer-wpf${NC}   Create the WPF installer"
+    echo -e "  ${GREEN}dotnet-installer-winui3${NC} Create the WinUI 3 installer"
+    echo -e "  ${GREEN}dotnet-installer-single${NC} Create the WinUI 3 single-file installer"
+    echo -e "  ${GREEN}dotnet-installers${NC}      Create all .NET installers"
+    echo -e "  ${GREEN}dotnet-clean${NC}           Remove .NET build artifacts"
     echo -e "  ${GREEN}help${NC}     Show this help message"
     echo
 }
@@ -323,6 +337,110 @@ tauri_clean() {
 }
 
 # ============================================================
+# .NET
+# ============================================================
+
+dotnet_prepare() {
+    print_header "Preparing Job Application Tracker .NET"
+
+    bash "$DOTNET_DIR/orchestrator.sh" prepare
+
+    print_header ".NET preparation completed successfully"
+}
+
+dotnet_start_wpf() {
+    print_header "Starting Job Application Tracker WPF"
+
+    bash "$DOTNET_DIR/orchestrator.sh" start-wpf
+}
+
+dotnet_start_winui3() {
+    print_header "Starting Job Application Tracker WinUI 3"
+
+    bash "$DOTNET_DIR/orchestrator.sh" start-winui3
+}
+
+dotnet_build_wpf() {
+    print_header "Building Job Application Tracker WPF"
+
+    bash "$DOTNET_DIR/orchestrator.sh" build-wpf
+
+    print_header "WPF build completed successfully"
+}
+
+dotnet_build_winui3() {
+    print_header "Building Job Application Tracker WinUI 3"
+
+    bash "$DOTNET_DIR/orchestrator.sh" build-winui3
+
+    print_header "WinUI 3 build completed successfully"
+}
+
+dotnet_publish_wpf() {
+    print_header "Publishing Job Application Tracker WPF"
+
+    bash "$DOTNET_DIR/orchestrator.sh" publish-wpf
+
+    print_header "WPF publish completed successfully"
+}
+
+dotnet_publish_winui3() {
+    print_header "Publishing Job Application Tracker WinUI 3"
+
+    bash "$DOTNET_DIR/orchestrator.sh" publish-winui3
+
+    print_header "WinUI 3 publish completed successfully"
+}
+
+dotnet_publish_single() {
+    print_header "Publishing Job Application Tracker WinUI 3 Single-File"
+
+    bash "$DOTNET_DIR/orchestrator.sh" publish-single
+
+    print_header "WinUI 3 single-file publish completed successfully"
+}
+
+dotnet_installer_wpf() {
+    print_header "Creating Job Application Tracker WPF Installer"
+
+    bash "$DOTNET_DIR/orchestrator.sh" installer-wpf
+
+    print_header "WPF installer created successfully"
+}
+
+dotnet_installer_winui3() {
+    print_header "Creating Job Application Tracker WinUI 3 Installer"
+
+    bash "$DOTNET_DIR/orchestrator.sh" installer-winui3
+
+    print_header "WinUI 3 installer created successfully"
+}
+
+dotnet_installer_single() {
+    print_header "Creating Job Application Tracker WinUI 3 Single-File Installer"
+
+    bash "$DOTNET_DIR/orchestrator.sh" installer-single
+
+    print_header "WinUI 3 single-file installer created successfully"
+}
+
+dotnet_installers() {
+    print_header "Creating All Job Application Tracker .NET Installers"
+
+    bash "$DOTNET_DIR/orchestrator.sh" installers
+
+    print_header ".NET installers created successfully"
+}
+
+dotnet_clean() {
+    print_header "Cleaning .NET build artifacts"
+
+    bash "$DOTNET_DIR/orchestrator.sh" clean
+
+    print_header ".NET clean completed successfully"
+}
+
+# ============================================================
 # Clean Workspace
 # ============================================================
 
@@ -358,6 +476,7 @@ case "${1:-help}" in
     clean)
         clean
         ;;
+
     electron-start)
         electron_start
         ;;
@@ -367,6 +486,7 @@ case "${1:-help}" in
     electron-clean)
         electron_clean
         ;;
+
     tauri-start)
         tauri_start
         ;;
@@ -376,6 +496,47 @@ case "${1:-help}" in
     tauri-clean)
         tauri_clean
         ;;
+
+    dotnet-prepare)
+        dotnet_prepare
+        ;;
+    dotnet-start-wpf)
+        dotnet_start_wpf
+        ;;
+    dotnet-start-winui3)
+        dotnet_start_winui3
+        ;;
+    dotnet-build-wpf)
+        dotnet_build_wpf
+        ;;
+    dotnet-build-winui3)
+        dotnet_build_winui3
+        ;;
+    dotnet-publish-wpf)
+        dotnet_publish_wpf
+        ;;
+    dotnet-publish-winui3)
+        dotnet_publish_winui3
+        ;;
+    dotnet-publish-single)
+        dotnet_publish_single
+        ;;
+    dotnet-installer-wpf)
+        dotnet_installer_wpf
+        ;;
+    dotnet-installer-winui3)
+        dotnet_installer_winui3
+        ;;
+    dotnet-installer-single)
+        dotnet_installer_single
+        ;;
+    dotnet-installers)
+        dotnet_installers
+        ;;
+    dotnet-clean)
+        dotnet_clean
+        ;;
+
     help)
         show_help
         ;;
