@@ -137,6 +137,12 @@ The Tauri implementation packages the existing React frontend and Spring Boot ba
 
 For the complete Tauri-specific architecture, setup, runtime creation, startup process, packaging, and troubleshooting details, see the [Tauri README](tauri/README.md).
 
+# .NET Desktop Application
+
+The .NET implementation packages the existing React frontend and Spring Boot backend into Windows desktop applications using WPF and WinUI 3. It includes WPF and WinUI 3 desktop hosts, production React frontend, Spring Boot backend JAR, custom Java 22 runtime created with `jlink`, WebView2 integration, self-contained publishing, WinUI 3 single-file publishing, MSIX packaging, and Inno Setup installers.
+
+For the complete .NET-specific architecture, setup, frontend and backend resource preparation, WPF and WinUI 3 development, publishing, MSIX packaging, installer configuration, and orchestration details, see the [.NET README](dotnet/README.md).
+
 # Complete Setup Using the Root Orchestrator
 
 For a fresh checkout:
@@ -206,6 +212,64 @@ The end user does not need to install:
 
 The bundled Java runtime is used to run the Spring Boot backend.
 
+# Tauri Installer
+
+The Windows installer is generated under:
+
+```text
+tauri/src-tauri/target/release/bundle/nsis/
+```
+
+The distributable file is:
+
+```text
+Job Application Tracker - Tauri_<version>_x64-setup.exe
+```
+
+The installer contains the required Tauri application, production frontend, backend, and custom Java 22 runtime.
+
+The end user does not need to install:
+
+* Java/JDK
+* Node.js
+* npm
+* Maven
+* the backend repository
+* the frontend repository
+
+The bundled Java runtime is used to run the Spring Boot backend.
+
+# .NET Installer
+
+The Windows installers are generated under:
+
+```text
+dotnet/publish/installers/
+```
+
+The distributable files include:
+
+```text
+JobApplicationTracker-WPF-Setup-<version>.exe
+JobApplicationTracker-WinUI3-Setup-<version>.exe
+JobApplicationTracker-WinUI3-SingleFile-Setup-<version>.exe
+```
+
+The installers contain the required .NET desktop application, production frontend, backend, and custom Java 22 runtime.
+
+The end user does not need to install:
+
+- Java/JDK
+- Node.js
+- npm
+- Maven
+- the backend repository
+- the frontend repository
+
+The bundled Java runtime is used to run the Spring Boot backend.
+
+The WinUI 3 implementation also supports MSIX packaging separately.
+
 # Application Data
 
 The installed application stores its SQLite database under:
@@ -234,8 +298,17 @@ Installed application:   ~130 MB
 Installer name:          Job Application Tracker - Tauri_<version>_x64-setup.exe
 ```
 
+.NET:
+```text
+Windows installer:       ~150 MB
+Installed application:   ~250 MB
+Installer name:          JobApplicationTracker-<platform>-Setup-<version>.exe
+```
+
 Notes:
+
 - Electron packaging is straightforward and requires minimal setup, making it easier to get started quickly.
-- Tauri produces significantly smaller installers and installed sizes, but the setup process is more involved. It often requires additional configuration and custom Rust integrations to achieve the desired functionality.
+- Tauri produces significantly smaller installers and installed sizes, but the setup process is more involved. It requires additional configuration and custom Rust integrations to achieve the desired functionality.
+- .NET provides a moderate setup experience. Adding the desktop wrapper is relatively straightforward, while creating distributable installers requires additional software such as Inno Setup.
 - The installers are compressed, while the installed applications contain the extracted application files.
 - For distribution, provide the respective Windows installer.
