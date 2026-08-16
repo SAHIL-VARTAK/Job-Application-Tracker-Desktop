@@ -149,9 +149,47 @@ jobs:
         shell: bash
         run: bash ./orchestrator.sh build
 
-      - name: Build .NET installers
+      - name: Prepare .NET resources
         shell: bash
-        run: bash ./orchestrator.sh dotnet-installers
+        run: bash ./orchestrator.sh dotnet-prepare
+
+      - name: Publish WPF
+        id: wpf_publish
+        continue-on-error: true
+        shell: bash
+        run: bash ./orchestrator.sh dotnet-publish-wpf
+
+      - name: Create WPF installer
+        if: steps.wpf_publish.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: bash ./orchestrator.sh dotnet-installer-wpf
+
+      - name: Publish WinUI 3
+        id: winui3_publish
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: bash ./orchestrator.sh dotnet-publish-winui3
+
+      - name: Create WinUI 3 installer
+        if: always() && steps.winui3_publish.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: bash ./orchestrator.sh dotnet-installer-winui3
+
+      - name: Publish WinUI 3 single-file
+        id: winui3_single_publish
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: bash ./orchestrator.sh dotnet-publish-single
+
+      - name: Create WinUI 3 single-file installer
+        if: always() && steps.winui3_single_publish.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: bash ./orchestrator.sh dotnet-installer-single
 
       - name: Upload .NET installers
         if: always()
