@@ -153,49 +153,88 @@ jobs:
         shell: bash
         run: bash ./orchestrator.sh dotnet-prepare
 
-      - name: Publish WPF
-        id: wpf_publish
-        continue-on-error: true
-        shell: bash
-        run: bash ./orchestrator.sh dotnet-publish-wpf
+      # - name: Publish WPF
+      #   id: wpf_publish
+      #   continue-on-error: true
+      #   shell: bash
+      #   run: bash ./orchestrator.sh dotnet-publish-wpf
 
-      - name: Create WPF installer
-        if: steps.wpf_publish.outcome == 'success'
-        continue-on-error: true
-        shell: bash
-        run: bash ./orchestrator.sh dotnet-installer-wpf
+      # - name: Create WPF installer
+      #   if: steps.wpf_publish.outcome == 'success'
+      #   continue-on-error: true
+      #   shell: bash
+      #   run: bash ./orchestrator.sh dotnet-installer-wpf
 
-      - name: Publish WinUI 3
-        id: winui3_publish
+      # - name: Publish WinUI 3
+      #   id: winui3_publish
+      #   if: always()
+      #   continue-on-error: true
+      #   shell: bash
+      #   run: bash ./orchestrator.sh dotnet-publish-winui3
+
+      # - name: Create WinUI 3 installer
+      #   if: always() && steps.winui3_publish.outcome == 'success'
+      #   continue-on-error: true
+      #   shell: bash
+      #   run: bash ./orchestrator.sh dotnet-installer-winui3
+
+      # - name: Publish WinUI 3 single-file
+      #   id: winui3_single_publish
+      #   if: always()
+      #   continue-on-error: true
+      #   shell: bash
+      #   run: bash ./orchestrator.sh dotnet-publish-single
+
+      # - name: Create WinUI 3 single-file installer
+      #   if: always() && steps.winui3_single_publish.outcome == 'success'
+      #   continue-on-error: true
+      #   shell: bash
+      #   run: bash ./orchestrator.sh dotnet-installer-single
+
+      # - name: Upload .NET installers
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: dotnet-installers
+      #     path: dotnet/publish/installers/*.exe
+      #     if-no-files-found: warn
+      #     retention-days: 7
+
+      - name: Build unsigned MSIX
+        id: msix_build
         if: always()
         continue-on-error: true
         shell: bash
-        run: bash ./orchestrator.sh dotnet-publish-winui3
+        run: |
+          PROJECT="dotnet/WinUI3/WinUI3.csproj"
+          OUTPUT="dotnet/publish/WinUI3-MSIX"
 
-      - name: Create WinUI 3 installer
-        if: always() && steps.winui3_publish.outcome == 'success'
-        continue-on-error: true
-        shell: bash
-        run: bash ./orchestrator.sh dotnet-installer-winui3
+          rm -rf "$OUTPUT"
+          mkdir -p "$OUTPUT"
 
-      - name: Publish WinUI 3 single-file
-        id: winui3_single_publish
-        if: always()
-        continue-on-error: true
-        shell: bash
-        run: bash ./orchestrator.sh dotnet-publish-single
+          echo "Building unsigned MSIX..."
 
-      - name: Create WinUI 3 single-file installer
-        if: always() && steps.winui3_single_publish.outcome == 'success'
-        continue-on-error: true
-        shell: bash
-        run: bash ./orchestrator.sh dotnet-installer-single
+          dotnet build "$PROJECT" \
+            -c Release \
+            -p:Platform=x64 \
+            -p:GenerateAppxPackageOnBuild=true \
+            -p:AppxPackageDir="$OUTPUT/"
 
-      - name: Upload .NET installers
+          MSIX=$(find "$OUTPUT" -type f -name "*.msix" | head -n 1)
+
+          if [ -z "$MSIX" ]; then
+            echo "Error: MSIX package was not generated."
+            exit 1
+          fi
+
+          echo "MSIX generated:"
+          echo "$MSIX"
+
+      - name: Upload unsigned MSIX
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: dotnet-installers
-          path: dotnet/publish/installers/*.exe
+          name: dotnet-msix
+          path: dotnet/publish/WinUI3-MSIX/**/*.msix
           if-no-files-found: warn
           retention-days: 7
