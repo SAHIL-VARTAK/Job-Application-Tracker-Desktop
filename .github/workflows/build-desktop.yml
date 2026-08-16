@@ -69,24 +69,12 @@ jobs:
           $releaseTag = "desktop-showcase"
           $installer = "${{ steps.check_electron.outputs.installer }}"
 
-          gh release view $releaseTag 2>$null
-
-          if ($LASTEXITCODE -ne 0) {
-              Write-Host "Creating release: $releaseTag"
-
-              gh release create $releaseTag `
-                --title "Desktop Application Showcase" `
-                --notes "Showcase builds of the Job Application Tracker desktop implementations." `
-                --prerelease
-          }
-          else {
-              Write-Host "Release already exists: $releaseTag"
-          }
-
-          Write-Host "Uploading Electron installer..."
+          Write-Host "Uploading Electron installer:"
+          Write-Host $installer
 
           gh release upload $releaseTag `
             "$installer" `
+            --repo "${{ github.repository }}" `
             --clobber
 
       # - name: Upload Electron installer
@@ -169,24 +157,12 @@ jobs:
           $releaseTag = "desktop-showcase"
           $installer = "${{ steps.check_tauri.outputs.installer }}"
 
-          gh release view $releaseTag 2>$null
-
-          if ($LASTEXITCODE -ne 0) {
-              Write-Host "Creating release: $releaseTag"
-
-              gh release create $releaseTag `
-                --title "Desktop Application Showcase" `
-                --notes "Showcase builds of the Job Application Tracker desktop implementations." `
-                --prerelease
-          }
-          else {
-              Write-Host "Release already exists: $releaseTag"
-          }
-
-          Write-Host "Uploading Tauri installer..."
+          Write-Host "Uploading Tauri installer:"
+          Write-Host $installer
 
           gh release upload $releaseTag `
             "$installer" `
+            --repo "${{ github.repository }}" `
             --clobber
 
       # - name: Upload Tauri installer
@@ -326,31 +302,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $releaseTag = "desktop-showcase"
-
-          gh release view $releaseTag 2>$null
-
-          if ($LASTEXITCODE -ne 0) {
-              Write-Host "Creating release: $releaseTag"
-
-              gh release create $releaseTag `
-                --title "Desktop Application Showcase" `
-                --notes "Showcase builds of the Job Application Tracker desktop implementations." `
-                --prerelease
-          }
-          else {
-              Write-Host "Release already exists: $releaseTag"
-          }
-
           $installers = "${{ steps.check_dotnet.outputs.installers }}" -split "`n"
 
           foreach ($installer in $installers) {
               $installer = $installer.Trim()
 
               if ($installer) {
-                  Write-Host "Uploading: $installer"
+                  Write-Host "Uploading .NET installer:"
+                  Write-Host $installer
 
                   gh release upload $releaseTag `
                     "$installer" `
+                    --repo "${{ github.repository }}" `
                     --clobber
               }
           }
@@ -420,25 +383,12 @@ jobs:
           $releaseTag = "desktop-showcase"
           $msix = "${{ steps.check_msix.outputs.msix }}"
 
-          gh release view $releaseTag 2>$null
-
-          if ($LASTEXITCODE -ne 0) {
-              Write-Host "Creating release: $releaseTag"
-
-              gh release create $releaseTag `
-                --title "Desktop Application Showcase" `
-                --notes "Showcase builds of the Job Application Tracker desktop implementations." `
-                --prerelease
-          }
-          else {
-              Write-Host "Release already exists: $releaseTag"
-          }
-
           Write-Host "Uploading signed MSIX:"
           Write-Host $msix
 
           gh release upload $releaseTag `
             "$msix" `
+            --repo "${{ github.repository }}" `
             --clobber
 
       # - name: Upload signed MSIX
