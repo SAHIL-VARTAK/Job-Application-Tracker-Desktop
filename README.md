@@ -1,8 +1,13 @@
 # Job Application Tracker Desktop
 
-A desktop application built around the existing Job Application Tracker backend and React frontend.
+A desktop application built around the existing **Job Application Tracker** Springboot backend and React frontend.
 
 The repository provides orchestration scripts for cloning, updating, building, cleaning, running, and packaging the application with Electron.
+
+### Application Components
+
+* **Backend:** https://github.com/SAHIL-VARTAK/Job-Application-Tracker
+* **Frontend:** https://github.com/SAHIL-VARTAK/Job-Application-Tracker-UI
 
 ## Desktop Application Builds
 
