@@ -2,12 +2,28 @@ name: Build Desktop Applications
 
 on:
   workflow_dispatch:
+    inputs:
+      pipeline:
+        description: "Select desktop pipeline to build"
+        required: true
+        default: dotnet
+        type: choice
+        options:
+          - electron
+          - tauri
+          - dotnet
+          - all
+
+  push:
+    branches:
+      - develop
 
 permissions:
   contents: write
 
 jobs:
   electron:
+    if: ${{ github.event.inputs.pipeline == 'electron' || github.event.inputs.pipeline == 'all' }}
     name: Build Electron
     runs-on: windows-latest
 
@@ -83,6 +99,7 @@ jobs:
       #     retention-days: 7
 
   tauri:
+    if: ${{ github.event.inputs.pipeline == 'tauri' || github.event.inputs.pipeline == 'all' }}
     name: Build Tauri
     runs-on: windows-latest
 
@@ -171,6 +188,7 @@ jobs:
       #     retention-days: 7
 
   dotnet:
+    if: ${{ github.event_name == 'push' || github.event.inputs.pipeline == 'dotnet' || github.event.inputs.pipeline == 'all' }}
     name: Build .NET Desktop Applications
     runs-on: windows-latest
 
@@ -252,7 +270,11 @@ jobs:
         if: always()
         continue-on-error: true
         shell: bash
-        run: bash ./orchestrator.sh dotnet-publish-single
+        run: |
+          dotnet clean dotnet/WinUI3/WinUI3.csproj
+          rm -rf dotnet/WinUI3/bin
+          rm -rf dotnet/WinUI3/obj
+          bash ./orchestrator.sh dotnet-publish-single
 
       - name: Create WinUI 3 single-file installer
         if: always() && steps.winui3_single_publish.outcome == 'success'
