@@ -14,6 +14,12 @@ on:
           - dotnet
           - all
 
+      release:
+        description: "GitHub release tag"
+        required: true
+        default: desktop-showcase
+        type: string
+
 permissions:
   contents: write
 
@@ -74,7 +80,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $releaseTag = "desktop-showcase"
+          $releaseTag = "${{ inputs.release }}"
           $installer = "${{ steps.check_electron.outputs.installer }}"
 
           Write-Host "Uploading Electron installer:"
@@ -163,7 +169,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $releaseTag = "desktop-showcase"
+          $releaseTag = "${{ inputs.release }}"
           $installer = "${{ steps.check_tauri.outputs.installer }}"
 
           Write-Host "Uploading Tauri installer:"
@@ -315,7 +321,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $releaseTag = "desktop-showcase"
+          $releaseTag = "${{ inputs.release }}"
           $installers = "${{ steps.check_dotnet.outputs.installers }}" -split "`n"
 
           foreach ($installer in $installers) {
@@ -394,7 +400,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $releaseTag = "desktop-showcase"
+          $releaseTag = "${{ inputs.release }}"
           $msix = "${{ steps.check_msix.outputs.msix }}"
 
           Write-Host "Uploading signed MSIX:"
