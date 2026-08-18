@@ -9,7 +9,22 @@ PROJECT="$DOTNET_DIR/WinUI3/WinUI3.csproj"
 CERTIFICATE="$DOTNET_DIR/JobApplicationTracker-Dev.pfx"
 OUTPUT="$DOTNET_DIR/publish/WinUI3-MSIX"
 
-SIGNTOOL="/c/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe"
+# ============================================================
+# Locate SignTool
+# ============================================================
+
+SIGNTOOL=$(find "/c/Program Files (x86)/Windows Kits/10/bin" \
+    -type f \
+    -path "*/x64/signtool.exe" \
+    2>/dev/null | sort -V | tail -n 1)
+
+if [ -z "$SIGNTOOL" ]; then
+    echo "Error: signtool.exe was not found."
+    exit 1
+fi
+
+echo "SignTool:"
+echo "$SIGNTOOL"
 
 ENV_FILE="$DOTNET_DIR/.env"
 
@@ -77,6 +92,8 @@ echo "Signing MSIX..."
 
 MSYS_NO_PATHCONV=1 "$SIGNTOOL" sign \
     /fd SHA256 \
+    /tr http://timestamp.digicert.com \
+    /td SHA256 \
     /f "$CERTIFICATE_WIN" \
     /p "$MSIX_CERT_PASSWORD" \
     "$MSIX_WIN"
